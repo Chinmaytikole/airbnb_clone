@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'login.dart';
 import 'main.dart';
 import 'Start.dart';
+import 'renting.dart';
+import 'product.dart'; // Import the product.dart file
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(AirbnbClone());
 }
-
 class AirbnbClone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -23,8 +28,8 @@ class AirbnbClone extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/main': (context) => RegistrationPage(),
         '/home': (context) => HomePage(),
-        '/product': (context) => ProductPage(),
-        '/rent': (context) => RentYourPlacePage(), // Added route for rent page
+        '/product': (context) => ProductPage(), // This now references the ProductPage from product.dart
+        '/rent': (context) => ListingPage(), // Updated to use ListingPage from renting.dart
       },
     );
   }
@@ -50,7 +55,9 @@ class _RentYourPlacePageState extends State<RentYourPlacePage> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
         title: Text(
           'Rent Your Place',
@@ -254,154 +261,6 @@ class _RentYourPlacePageState extends State<RentYourPlacePage> {
   }
 }
 
-class ProductPage extends StatelessWidget {
-  final Map<String, dynamic>? listing;
-
-  ProductPage({this.listing});
-
-  @override
-  Widget build(BuildContext context) {
-    // Get the listing data passed through arguments if not provided in constructor
-    final Map<String, dynamic> productData = listing ??
-        (ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>);
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          productData['place'],
-          style: TextStyle(color: Colors.black),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.favorite_border, color: Colors.black),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.share, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Hero image
-            Container(
-              height: 300,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(productData['image']),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        productData['place'],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF00FFD9),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          productData['price'],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, color: Colors.grey, size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        productData['location'],
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Spacer(),
-                      Icon(Icons.star, color: Colors.amber, size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        '${productData['rating']}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    'About this place',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'This beautiful ${productData['place'].toLowerCase()} is located in ${productData['location']} and offers a comfortable stay with modern amenities. Perfect for your next vacation!',
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      height: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF00FFD9),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      minimumSize: Size(double.infinity, 50),
-                    ),
-                    onPressed: () {},
-                    child: Text(
-                      'Book Now',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class HomePage extends StatelessWidget {
   // Sample data for listings
   final List<Map<String, dynamic>> listings = [
@@ -531,7 +390,7 @@ class HomePage extends StatelessWidget {
               leading: Icon(Icons.add_home, color: Color(0xFF00FFD9)),
               title: Text('Rent Your Place'),
               onTap: () {
-                Navigator.pushNamed(context, '/rent');
+                Navigator.of(context).pushNamed('/rent');
               },
             ),
             ListTile(
@@ -626,7 +485,7 @@ class HomePage extends StatelessWidget {
               ),
               SizedBox(height: 10),
               Container(
-                height: 280,
+                height: 310, // Increased height to accommodate the button
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: 3,
@@ -669,7 +528,7 @@ class HomePage extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 15,
                   mainAxisSpacing: 15,
-                  childAspectRatio: 0.5,
+                  childAspectRatio: 0.45, // Adjusted to accommodate the button
                 ),
                 itemCount: listings.length,
                 itemBuilder: (context, index) {
@@ -726,8 +585,7 @@ class HomePage extends StatelessWidget {
   Widget _buildFeaturedItem(BuildContext context, Map<String, dynamic> listing) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(
-          context,
+        Navigator.of(context).pushNamed(
           '/product',
           arguments: listing,
         );
@@ -750,36 +608,27 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  '/product',
-                  arguments: listing,
-                );
-              },
-              child: Container(
-                height: 150,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-                  image: DecorationImage(
-                    image: NetworkImage(listing['image']),
-                    fit: BoxFit.cover,
-                  ),
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                image: DecorationImage(
+                  image: NetworkImage(listing['image']),
+                  fit: BoxFit.cover,
                 ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: Icon(
-                        Icons.favorite_border,
-                        color: Colors.white,
-                        size: 28,
-                      ),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Icon(
+                      Icons.favorite_border,
+                      color: Colors.white,
+                      size: 28,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             // Details
@@ -825,6 +674,33 @@ class HomePage extends StatelessWidget {
                       color: Color(0xFF00FFD9),
                     ),
                   ),
+                  SizedBox(height: 10),
+                  // Added View Details Button
+                  Container(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          '/product',
+                          arguments: listing,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF00FFD9),
+                        foregroundColor: Colors.black,
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        'View Details',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -835,122 +711,132 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildListingCard(BuildContext context, Map<String, dynamic> listing) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          '/product',
-          arguments: listing,
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: Offset(0, 5),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Image container with stack for favorite icon
+          Container(
+            height: 125,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+              image: DecorationImage(
+                image: NetworkImage(listing['image']),
+                fit: BoxFit.cover,
+              ),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image container with stack for favorite icon
-            GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  '/product',
-                  arguments: listing,
-                );
-              },
-              child: Container(
-                height: 125,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-                  image: DecorationImage(
-                    image: NetworkImage(listing['image']),
-                    fit: BoxFit.cover,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.favorite_border,
+                      color: Color(0xFF00FFD9),
+                      size: 18,
+                    ),
                   ),
                 ),
-                child: Stack(
+              ],
+            ),
+          ),
+          // Details
+          Padding(
+            padding: EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.favorite_border,
-                          color: Color(0xFF00FFD9),
-                          size: 18,
-                        ),
+                    Icon(Icons.star, color: Colors.amber, size: 14),
+                    SizedBox(width: 4),
+                    Text(
+                      '${listing['rating']}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
-            // Details
-            Padding(
-              padding: EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.star, color: Colors.amber, size: 14),
-                      SizedBox(width: 4),
-                      Text(
-                        '${listing['rating']}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
+                SizedBox(height: 4),
+                Text(
+                  listing['place'],
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 2),
+                Text(
+                  listing['location'],
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 6),
+                Text(
+                  listing['price'],
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Color(0xFF00FFD9),
+                  ),
+                ),
+                SizedBox(height: 10),
+                // Added View Details Button to listing card
+                Container(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        '/product',
+                        arguments: listing,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF00FFD9),
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    listing['place'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    listing['location'],
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    listing['price'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Color(0xFF00FFD9),
+                    child: Text(
+                      'View Details',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

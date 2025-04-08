@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:new_proj/home.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'login.dart';
 import 'main.dart';
+import 'product.dart';
+import 'renting.dart';
+void main() async {
+  // Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() {
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
+  // Run your app
   runApp(AirbnbClone());
 }
 
@@ -19,6 +28,10 @@ class AirbnbClone extends StatelessWidget {
       home: StartPage(),
       routes: {
         "/sign": (context) => RegistrationPage(),
+        '/main': (context) => RegistrationPage(),
+        '/home': (context) => HomePage(),
+        '/product': (context) => ProductPage(), // This now references the ProductPage from product.dart
+        '/rent': (context) => ListingPage(),
       },
     );
   }
@@ -70,8 +83,7 @@ class StartPage extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                    mainAxisAlignment: MainAxisAlignment.center, children: [
                       SizedBox(height: 40),
 
                       // Logo
