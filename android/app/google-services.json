@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "887711704883",
+    "project_id": "airbnb-clone-4ab63",
+    "storage_bucket": "airbnb-clone-4ab63.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:887711704883:android:d734375a233d5a118a4046",
+        "android_client_info": {
+          "package_name": "com.example.new_proj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA712HuCHBvg8UPs4zBJSKQQ0TlXAaFdNc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
