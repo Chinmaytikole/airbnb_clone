@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Added Firestore import
 import 'login.dart'; // Import LoginPage
 import 'home.dart';
 import 'product.dart';
 import 'renting.dart';
+import 'profile.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -26,7 +28,9 @@ class MyApp extends StatelessWidget {
         '/main': (context) => RegistrationPage(),
         '/home': (context) => HomePage(),
         '/product': (context) => ProductPage(), // This now references the ProductPage from product.dart
-        '/rent': (context) => ListingPage(),
+        '/rent': (context) => ListingPage(uid: ''),
+        '/profile': (context) => ProfilePage(),
+
       },
     );
   }
@@ -41,6 +45,7 @@ class RegistrationPage extends StatefulWidget {
 
 class _RegistrationPageState extends State<RegistrationPage> {
   final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance; // Added Firestore instance
   final _formKey = GlobalKey<FormState>();
 
   // Controllers to get text input values
@@ -89,6 +94,24 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
       // Update the user's display name
       await userCredential.user?.updateDisplayName(_nameController.text);
+
+      // Add user information to Firestore with predefined fields structure
+      try {
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'Email': _emailController.text.trim(),
+          'Username': _nameController.text,
+          'HasRented': false,
+          'SignIn_date': FieldValue.serverTimestamp(),
+        });
+
+        print('User data successfully written to Firestore with full RentedPlace structure!');
+      } catch (firestoreError) {
+        print('Error writing to Firestore: $firestoreError');
+        setState(() {
+          _errorMessage = 'Account created but profile data could not be saved: $firestoreError';
+        });
+      }
+
 
       // Navigate to login page or home page after successful registration
       if (mounted) {

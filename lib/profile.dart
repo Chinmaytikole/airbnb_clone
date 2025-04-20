@@ -1,26 +1,5 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Airbnbclone Profile',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        primaryColor: const Color(0xFF00FFCF),
-        scaffoldBackgroundColor: const Color(0xFFE6FFF9),
-      ),
-      home: const ProfilePage(),
-    );
-  }
-}
+import 'package:firebase_auth/firebase_auth.dart'; // Add Firebase Auth import if you're using it
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -28,13 +7,27 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF00FFD9), // Updated to match your app's color
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context); // Add navigation to go back
+          },
+        ),
+        title: Text(
+          'Profile',
+          style: TextStyle(color: Colors.black),
+        ),
+      ),
       body: Column(
         children: [
           // Header
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 15),
-            color: const Color(0xFF00FFCF), // Turquoise/aqua color for header
+            color: const Color(0xFF00FFD9), // Updated color to match app theme
             child: const Center(
               child: Text(
                 'Airbnbclone',
@@ -93,7 +86,7 @@ class ProfilePage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Container(
                     height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(5),
@@ -131,7 +124,7 @@ class ProfilePage extends StatelessWidget {
                   ),
                   _buildVerificationItem(
                       'Social media accounts',
-                      'Connect accounts',
+                      'Connect?',
                       Icons.link,
                       Colors.blue
                   ),
@@ -239,7 +232,7 @@ class ProfilePage extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00FFCF),
+                      backgroundColor: const Color(0xFF00FFD9), // Updated color to match app theme
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       textStyle: const TextStyle(
@@ -256,18 +249,38 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
 
-          // Footer
+          // Footer with navigation
           Container(
             width: double.infinity,
             height: 50,
-            color: const Color(0xFF00FFCF), // Same turquoise/aqua color for footer
-            child: const Row(
+            color: const Color(0xFF00FFD9), // Updated color to match app theme
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Icon(Icons.home),
-                Icon(Icons.search),
-                Icon(Icons.favorite_border),
-                Icon(Icons.person),
+                IconButton(
+                  icon: Icon(Icons.home),
+                  onPressed: () {
+                    Navigator.of(context).pushReplacementNamed('/home');
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.search),
+                  onPressed: () {
+                    // Navigate to search if you have a search page
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.favorite_border),
+                  onPressed: () {
+                    // Navigate to wishlist if you have a wishlist page
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.person, color: Colors.black), // Highlight active tab
+                  onPressed: () {
+                    // Already on profile page
+                  },
+                ),
               ],
             ),
           ),
@@ -294,7 +307,7 @@ class ProfilePage extends StatelessWidget {
           Container(
             height: 2,
             width: 50,
-            color: const Color(0xFF00FFCF),
+            color: const Color(0xFF00FFD9), // Updated color to match app theme
           ),
         ],
       ),
@@ -313,7 +326,7 @@ class ProfilePage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF00FFCF)),
+          Icon(icon, color: const Color(0xFF00FFD9)), // Updated color to match app theme
           const SizedBox(width: 15),
           Text(
             title,
@@ -395,7 +408,7 @@ class ProfilePage extends StatelessWidget {
           Switch(
             value: defaultValue,
             onChanged: (value) {},
-            activeColor: const Color(0xFF00FFCF),
+            activeColor: const Color(0xFF00FFD9), // Updated color to match app theme
           ),
         ],
       ),

@@ -5,6 +5,7 @@ import 'login.dart';
 import 'main.dart';
 import 'product.dart';
 import 'renting.dart';
+import 'profile.dart';
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +32,8 @@ class AirbnbClone extends StatelessWidget {
         '/main': (context) => RegistrationPage(),
         '/home': (context) => HomePage(),
         '/product': (context) => ProductPage(), // This now references the ProductPage from product.dart
-        '/rent': (context) => ListingPage(),
+        '/rent': (context) => ListingPage(uid: ''),
+        '/profile': (context) => ProfilePage(),
       },
     );
   }

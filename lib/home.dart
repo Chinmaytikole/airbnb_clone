@@ -1,17 +1,21 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login.dart';
 import 'main.dart';
 import 'Start.dart';
 import 'renting.dart';
-import 'product.dart'; // Import the product.dart file
+import 'product.dart';
+import 'profile.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(AirbnbClone());
 }
+
 class AirbnbClone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -28,285 +32,188 @@ class AirbnbClone extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/main': (context) => RegistrationPage(),
         '/home': (context) => HomePage(),
-        '/product': (context) => ProductPage(), // This now references the ProductPage from product.dart
-        '/rent': (context) => ListingPage(), // Updated to use ListingPage from renting.dart
+        '/product': (context) => ProductPage(),
+        '/rent': (context) => ListingPage(uid: ''),
+        '/profile': (context) => ProfilePage(),
       },
     );
   }
 }
 
-// Added RentYourPlacePage class
-class RentYourPlacePage extends StatefulWidget {
+
+class HomePage extends StatefulWidget {
   @override
-  _RentYourPlacePageState createState() => _RentYourPlacePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _RentYourPlacePageState extends State<RentYourPlacePage> {
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  String _selectedPropertyType = '';
-  bool _acceptTerms = false;
+class _HomePageState extends State<HomePage> {
+  String? userId;
+  String userName = "Loading...";
+  String userEmail = "Loading...";
+  String userInitials = "...";
+  bool isLoading = true;
+  List<Map<String, dynamic>> listings = [];
+  bool isLoadingListings = true;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text(
-          'Rent Your Place',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-      body: Container(
-        color: Color(0xFF00FFD9).withOpacity(0.05),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'Airbnbclone',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Price Input
-                const Text(
-                  'enter price per night',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _priceController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Address Input
-                const Text(
-                  'Enter address',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _addressController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Photos
-                const Text(
-                  'Add Photos',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  height: 100,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    color: Colors.white,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Camera icon
-                      IconButton(
-                        icon: const Icon(Icons.camera_alt, size: 40),
-                        onPressed: () {},
-                      ),
-                      const SizedBox(width: 40),
-                      // Upload icon
-                      IconButton(
-                        icon: const Icon(Icons.upload, size: 40),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Property Type
-                const Text(
-                  'What best describes your place',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                _buildPropertyTypeGrid(),
-
-                const SizedBox(height: 16),
-
-                // Terms and Conditions
-                Row(
-                  children: [
-                    Checkbox(
-                      activeColor: Color(0xFF00FFD9),
-                      value: _acceptTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _acceptTerms = value ?? false;
-                        });
-                      },
-                    ),
-                    const Text('Do you accept '),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'terms and conditions',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Rent Button
-                Container(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Implement submission logic
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF00FFD9),
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Rent this place',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    userId = ModalRoute.of(context)?.settings.arguments as String?;
+    if (userId != null) {
+      _fetchUserData();
+      _fetchAllListings();
+    }
   }
 
-  Widget _buildPropertyTypeGrid() {
-    final propertyTypes = ['house', 'Flat', 'Barn', 'Cabin', 'Boat', 'Tree house'];
+  Future<void> _fetchUserData() async {
+    setState(() {
+      isLoading = true;
+    });
 
-    return Container(
-      child: GridView.count(
-        crossAxisCount: 3,
-        shrinkWrap: true,
-        childAspectRatio: 2.5,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        physics: const NeverScrollableScrollPhysics(),
-        children: propertyTypes.map((type) {
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedPropertyType = type;
-              });
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                color: _selectedPropertyType == type ? Color(0xFF00FFD9).withOpacity(0.2) : Colors.white,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                type,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: _selectedPropertyType == type ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ),
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        setState(() {
+          userName = currentUser.displayName ?? "User";
+          userEmail = currentUser.email ?? "No email";
+          userInitials = _getInitials(userName);
+          isLoading = false;
+        });
+      } else {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
+
+        if (userDoc.exists && userDoc.data() != null) {
+          final userData = userDoc.data()!;
+          setState(() {
+            userName = userData['name'] ?? userData['fullName'] ?? "User";
+            userEmail = userData['email'] ?? "No email";
+            userInitials = _getInitials(userName);
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            userName = "User";
+            userEmail = "user@example.com";
+            userInitials = "U";
+            isLoading = false;
+          });
+        }
+      }
+
+      print('User ID: $userId');
+      print('Username: $userName');
+      print('Email: $userEmail');
+
+    } catch (e) {
+      print('Error fetching user data: $e');
+      setState(() {
+        userName = "User";
+        userEmail = "Error loading data";
+        userInitials = "U";
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchAllListings() async {
+    setState(() {
+      isLoadingListings = true;
+    });
+
+    try {
+      final QuerySnapshot rentedPlacesSnapshot = await FirebaseFirestore.instance
+          .collection('rented_place')
+          .where('HasRented', isEqualTo: true) // Only get places that are rented
+          .get();
+
+      List<Map<String, dynamic>> fetchedListings = [];
+
+      for (var doc in rentedPlacesSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        // Skip if RentedPlace data doesn't exist or isn't properly formatted
+        if (data.containsKey('RentedPlace') &&
+            data['RentedPlace'] is Map<String, dynamic>) {
+
+          final rentalData = Map<String, dynamic>.from(data['RentedPlace']);
+          rentalData['userId'] = doc.id; // Store the document ID as userId
+
+          // Handle images - we're now storing them as an array in the new structure
+          if (rentalData.containsKey('images') &&
+              rentalData['images'] is List &&
+              (rentalData['images'] as List).isNotEmpty) {
+            // Use the first image if available
+            rentalData['image'] = rentalData['images'][0];
+          } else {
+            // Fallback to a placeholder image
+            rentalData['image'] = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+          }
+
+          // Add other fields for display
+          rentalData['place'] = rentalData['title'] ?? 'Unnamed Place';
+          rentalData['price'] = '\$${rentalData['pricePerNight'] ?? '0'}/night';
+          rentalData['location'] = rentalData['Location'] ?? 'No location specified';
+
+          fetchedListings.add(rentalData);
+        }
+      }
+
+      setState(() {
+        listings = fetchedListings;
+        isLoadingListings = false;
+      });
+
+      print('Fetched ${listings.length} listings from rented_place collection');
+
+    } catch (e) {
+      print('Error fetching listings: $e');
+      setState(() {
+        isLoadingListings = false;
+      });
+    }
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return "U";
+
+    List<String> nameParts = name.split(" ");
+    if (nameParts.length > 1) {
+      return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+    }
+
+    return name.substring(0, 1).toUpperCase();
+  }
+
+  // Widget to display base64 image
+  Widget _buildBase64Image(String base64String) {
+    try {
+      if (base64String.startsWith('data:image')) {
+        // Handle data URI format
+        final parts = base64String.split(',');
+        if (parts.length == 2) {
+          return Image.memory(
+            base64Decode(parts[1]),
+            fit: BoxFit.cover,
           );
-        }).toList(),
-      ),
-    );
+        }
+      }
+      // Handle raw base64 string
+      return Image.memory(
+        base64Decode(base64String),
+        fit: BoxFit.cover,
+      );
+    } catch (e) {
+      print('Error decoding base64 image: $e');
+      return Container(
+        color: Colors.grey,
+        child: Center(child: Icon(Icons.broken_image, color: Colors.white)),
+      );
+    }
   }
-}
-
-class HomePage extends StatelessWidget {
-  // Sample data for listings
-  final List<Map<String, dynamic>> listings = [
-    {
-      'image': 'https://a0.muscache.com/im/pictures/miso/Hosting-1048815644102116679/original/05101663-7894-48d0-bfbe-61f923f7dfaf.jpeg?im_w=720',
-      'price': '\$120/night',
-      'place': 'Beachfront Villa',
-      'location': 'Malibu, CA',
-      'rating': 4.8,
-    },
-    {
-      'image': 'https://a0.muscache.com/im/pictures/miso/Hosting-1048815644102116679/original/05101663-7894-48d0-bfbe-61f923f7dfaf.jpeg?im_w=720',
-      'price': '\$85/night',
-      'place': 'Cozy Apartment',
-      'location': 'Manhattan, NY',
-      'rating': 4.6,
-    },
-    {
-      'image': 'https://a0.muscache.com/im/pictures/miso/Hosting-1048815644102116679/original/05101663-7894-48d0-bfbe-61f923f7dfaf.jpeg?im_w=720',
-      'price': '\$200/night',
-      'place': 'Mountain Cabin',
-      'location': 'Aspen, CO',
-      'rating': 4.9,
-    },
-    {
-      'image': 'https://a0.muscache.com/im/pictures/miso/Hosting-1048815644102116679/original/05101663-7894-48d0-bfbe-61f923f7dfaf.jpeg?im_w=720',
-      'price': '\$150/night',
-      'place': 'Lakeside Cottage',
-      'location': 'Lake Tahoe, NV',
-      'rating': 4.7,
-    },
-    {
-      'image': 'https://a0.muscache.com/im/pictures/miso/Hosting-1048815644102116679/original/05101663-7894-48d0-bfbe-61f923f7dfaf.jpeg?im_w=720',
-      'price': '\$95/night',
-      'place': 'Urban Loft',
-      'location': 'Chicago, IL',
-      'rating': 4.5,
-    },
-    {
-      'image': 'https://a0.muscache.com/im/pictures/miso/Hosting-1048815644102116679/original/05101663-7894-48d0-bfbe-61f923f7dfaf.jpeg?im_w=720',
-      'price': '\$175/night',
-      'place': 'Seaside Bungalow',
-      'location': 'Miami, FL',
-      'rating': 4.8,
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -358,7 +265,7 @@ class HomePage extends StatelessWidget {
                     radius: 30,
                     backgroundColor: Colors.white,
                     child: Text(
-                      'JD',
+                      isLoading ? "..." : userInitials,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -368,35 +275,36 @@ class HomePage extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    'John Doe',
+                    isLoading ? "Loading..." : userName,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'john.doe@example.com',
+                    isLoading ? "Loading..." : userEmail,
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.black,
                       fontSize: 14,
                     ),
                   ),
                 ],
               ),
             ),
-            // ADDED RENT YOUR PLACE OPTION HERE
             ListTile(
               leading: Icon(Icons.add_home, color: Color(0xFF00FFD9)),
               title: Text('Rent Your Place'),
               onTap: () {
-                Navigator.of(context).pushNamed('/rent');
+                Navigator.of(context).pushNamed('/rent', arguments: userId);
               },
             ),
             ListTile(
               leading: Icon(Icons.account_circle, color: Color(0xFF00FFD9)),
               title: Text('Profile'),
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pushNamed('/profile', arguments: userId);
+              },
             ),
             ListTile(
               leading: Icon(Icons.house, color: Color(0xFF00FFD9)),
@@ -422,18 +330,22 @@ class HomePage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.logout, color: Colors.grey),
               title: Text('Logout'),
-              onTap: () {},
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.of(context).pushReplacementNamed('/');
+              },
             ),
           ],
         ),
       ),
-      body: SingleChildScrollView(
+      body: isLoadingListings
+          ? Center(child: CircularProgressIndicator(color: Color(0xFF00FFD9)))
+          : SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Search bar
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -458,7 +370,6 @@ class HomePage extends StatelessWidget {
               ),
               SizedBox(height: 20),
 
-              // Categories
               Container(
                 height: 90,
                 child: ListView(
@@ -475,7 +386,6 @@ class HomePage extends StatelessWidget {
               ),
               SizedBox(height: 20),
 
-              // Featured section
               Text(
                 'Featured Places',
                 style: TextStyle(
@@ -485,10 +395,12 @@ class HomePage extends StatelessWidget {
               ),
               SizedBox(height: 10),
               Container(
-                height: 310, // Increased height to accommodate the button
-                child: ListView.builder(
+                height: 340,
+                child: listings.isEmpty
+                    ? Center(child: Text('No listings available'))
+                    : ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: 3,
+                  itemCount: listings.length > 3 ? 3 : listings.length,
                   itemBuilder: (context, index) {
                     return _buildFeaturedItem(context, listings[index]);
                   },
@@ -496,7 +408,6 @@ class HomePage extends StatelessWidget {
               ),
               SizedBox(height: 20),
 
-              // All listings section
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -508,9 +419,11 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _fetchAllListings();
+                    },
                     child: Text(
-                      'View All',
+                      'Refresh',
                       style: TextStyle(
                         color: Color(0xFF00FFD9),
                         fontWeight: FontWeight.bold,
@@ -520,7 +433,37 @@ class HomePage extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 10),
-              GridView.builder(
+              listings.isEmpty
+                  ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    children: [
+                      Icon(Icons.home_work_outlined, size: 50, color: Colors.grey),
+                      SizedBox(height: 10),
+                      Text(
+                        'No places available yet',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamed('/rent', arguments: userId);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF00FFD9),
+                          foregroundColor: Colors.black,
+                        ),
+                        child: Text('List Your Place'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+                  : GridView.builder(
                 physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 padding: EdgeInsets.only(bottom: 5),
@@ -528,7 +471,7 @@ class HomePage extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 15,
                   mainAxisSpacing: 15,
-                  childAspectRatio: 0.45, // Adjusted to accommodate the button
+                  childAspectRatio: 0.45,
                 ),
                 itemCount: listings.length,
                 itemBuilder: (context, index) {
@@ -544,12 +487,24 @@ class HomePage extends StatelessWidget {
         selectedItemColor: Color(0xFF00FFD9),
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
+        onTap: (index) {
+          if (index == 3) {
+            Navigator.of(context).pushNamed('/profile', arguments: userId);
+          }
+        },
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explore'),
           BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Wishlist'),
           BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Messages'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _fetchAllListings();
+        },
+        backgroundColor: Color(0xFF00FFD9),
+        child: Icon(Icons.refresh, color: Colors.black),
       ),
     );
   }
@@ -591,7 +546,7 @@ class HomePage extends StatelessWidget {
         );
       },
       child: Container(
-        width: 280,
+        width: 230,
         margin: EdgeInsets.only(right: 15),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
@@ -607,31 +562,16 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
             Container(
-              height: 150,
+              height: 140,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-                image: DecorationImage(
-                  image: NetworkImage(listing['image']),
-                  fit: BoxFit.cover,
-                ),
               ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Icon(
-                      Icons.favorite_border,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                ],
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                child: _buildBase64Image(listing['image']),
               ),
             ),
-            // Details
             Padding(
               padding: EdgeInsets.all(12),
               child: Column(
@@ -642,7 +582,7 @@ class HomePage extends StatelessWidget {
                       Icon(Icons.star, color: Colors.amber, size: 18),
                       SizedBox(width: 4),
                       Text(
-                        '${listing['rating']}',
+                        '${4.5}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
@@ -651,7 +591,7 @@ class HomePage extends StatelessWidget {
                   ),
                   SizedBox(height: 5),
                   Text(
-                    listing['place'],
+                    listing['place'] ?? listing['title'] ?? 'Unnamed Place',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -659,7 +599,7 @@ class HomePage extends StatelessWidget {
                   ),
                   SizedBox(height: 3),
                   Text(
-                    listing['location'],
+                    listing['location'] ?? 'No location specified',
                     style: TextStyle(
                       color: Colors.grey.shade600,
                       fontSize: 14,
@@ -667,7 +607,7 @@ class HomePage extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    listing['price'],
+                    listing['price'] ?? '\$${listing['pricePerNight'] ?? '0'}/night',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -675,7 +615,6 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 10),
-                  // Added View Details Button
                   Container(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -711,132 +650,117 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildListingCard(BuildContext context, Map<String, dynamic> listing) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image container with stack for favorite icon
-          Container(
-            height: 125,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-              image: DecorationImage(
-                image: NetworkImage(listing['image']),
-                fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushNamed(
+          '/product',
+          arguments: listing,
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 125,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                child: _buildBase64Image(listing['image']),
               ),
             ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.star, color: Colors.amber, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        '${4.5}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    listing['place'] ?? listing['title'] ?? 'Unnamed Place',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
-                    child: Icon(
-                      Icons.favorite_border,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    listing['location'] ?? 'No location specified',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    listing['price'] ?? '\$${listing['pricePerNight'] ?? '0'}/night',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                       color: Color(0xFF00FFD9),
-                      size: 18,
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          '/product',
+                          arguments: listing,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF00FFD9),
+                        foregroundColor: Colors.black,
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      child: Text(
+                        'View Details',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          // Details
-          Padding(
-            padding: EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.star, color: Colors.amber, size: 14),
-                    SizedBox(width: 4),
-                    Text(
-                      '${listing['rating']}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4),
-                Text(
-                  listing['place'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 2),
-                Text(
-                  listing['location'],
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 12,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 6),
-                Text(
-                  listing['price'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Color(0xFF00FFD9),
-                  ),
-                ),
-                SizedBox(height: 10),
-                // Added View Details Button to listing card
-                Container(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        '/product',
-                        arguments: listing,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF00FFD9),
-                      foregroundColor: Colors.black,
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    child: Text(
-                      'View Details',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
